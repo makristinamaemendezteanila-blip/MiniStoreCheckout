@@ -16,27 +16,24 @@ function calculateDiscount(subtotal) {
 
 function getDeliveryFee(option) {
     switch (option) {
-        case "1":
+        case 1:
             return 0;
-        case "2":
+        case 2:
             return 80;
-        case "3":
+        case 3:
             return 150;
         default:
             return 0;
     }
 }
 
-const productCountInput = document.getElementById("productCount");
-const productsContainer = document.getElementById("productsContainer");
-const calculateBtn = document.getElementById("calculateBtn");
-
-productCountInput.addEventListener("input", function () {
-    const productCount = Number(productCountInput.value);
+function generateProductInputs() {
+    const productCount = Number(document.getElementById("productCount").value);
+    const productsContainer = document.getElementById("productsContainer");
 
     productsContainer.innerHTML = "";
 
-    if (productCount > 0) {
+    if (Number.isInteger(productCount) && productCount > 0) {
         for (let i = 0; i < productCount; i++) {
             productsContainer.innerHTML += `
                 <div>
@@ -53,33 +50,47 @@ productCountInput.addEventListener("input", function () {
                     <br>
 
                     <label for="productQuantity-${i}">Quantity</label>
-                    <input type="number" id="productQuantity-${i}" min="1">
+                    <input type="number" id="productQuantity-${i}" min="1" step="1">
 
                     <br><br>
                 </div>
             `;
         }
     }
-});
+}
 
-calculateBtn.addEventListener("click", function () {
+document.getElementById("productCount").addEventListener("input", generateProductInputs);
+document.getElementById("productCount").addEventListener("change", generateProductInputs);
+
+document.getElementById("calculateBtn").addEventListener("click", function () {
     const customerName = document.getElementById("customerName").value.trim();
-    const productCount = Number(document.getElementById("productCount").value);
-    const deliveryOption = document.getElementById("deliveryOption").value;
+    const productCountInput = document.getElementById("productCount").value;
+    const productCount = Number(productCountInput);
+    const deliveryOption = Number(document.getElementById("deliveryOption").value);
     const validationMessage = document.getElementById("validationMessage");
     const orderSummary = document.getElementById("orderSummary");
+    const productsContainer = document.getElementById("productsContainer");
 
     validationMessage.textContent = "";
     orderSummary.innerHTML = "";
 
     if (customerName === "") {
-        validationMessage.textContent = "Please enter the Customer Name.";
+        validationMessage.textContent = "Customer Name is required.";
         return;
     }
 
-    if (!Number.isFinite(productCount) || productCount <= 0 || !Number.isInteger(productCount)) {
-        validationMessage.textContent = "Please enter a valid positive Number of Products.";
+    if (
+        productCountInput === "" ||
+        !Number.isFinite(productCount) ||
+        productCount <= 0 ||
+        !Number.isInteger(productCount)
+    ) {
+        validationMessage.textContent = "Number of Products must be a valid positive number.";
         return;
+    }
+
+    if (productsContainer.children.length !== productCount) {
+        generateProductInputs();
     }
 
     let subtotal = 0;
@@ -87,21 +98,33 @@ calculateBtn.addEventListener("click", function () {
 
     for (let i = 0; i < productCount; i++) {
         const productName = document.getElementById(`productName-${i}`).value.trim();
-        const price = Number(document.getElementById(`productPrice-${i}`).value);
-        const quantity = Number(document.getElementById(`productQuantity-${i}`).value);
+        const priceInput = document.getElementById(`productPrice-${i}`).value;
+        const quantityInput = document.getElementById(`productQuantity-${i}`).value;
+
+        const price = Number(priceInput);
+        const quantity = Number(quantityInput);
 
         if (productName === "") {
-            validationMessage.textContent = `Please enter the Product Name for Product ${i + 1}.`;
+            validationMessage.textContent = `Product Name for Product ${i + 1} is required.`;
             return;
         }
 
-        if (!Number.isFinite(price) || price <= 0) {
-            validationMessage.textContent = `Please enter a valid positive Price for Product ${i + 1}.`;
+        if (
+            priceInput === "" ||
+            !Number.isFinite(price) ||
+            price <= 0
+        ) {
+            validationMessage.textContent = `Price for Product ${i + 1} must be a valid positive number.`;
             return;
         }
 
-        if (!Number.isFinite(quantity) || quantity <= 0 || !Number.isInteger(quantity)) {
-            validationMessage.textContent = `Please enter a valid positive Quantity for Product ${i + 1}.`;
+        if (
+            quantityInput === "" ||
+            !Number.isFinite(quantity) ||
+            quantity <= 0 ||
+            !Number.isInteger(quantity)
+        ) {
+            validationMessage.textContent = `Quantity for Product ${i + 1} must be a valid positive number.`;
             return;
         }
 
@@ -137,13 +160,13 @@ calculateBtn.addEventListener("click", function () {
     let deliveryType;
 
     switch (deliveryOption) {
-        case "1":
+        case 1:
             deliveryType = "Store Pickup";
             break;
-        case "2":
+        case 2:
             deliveryType = "Standard Delivery";
             break;
-        case "3":
+        case 3:
             deliveryType = "Express Delivery";
             break;
         default:
@@ -152,13 +175,11 @@ calculateBtn.addEventListener("click", function () {
 
     orderSummary.innerHTML = `
         <h2>MINI STORE CHECKOUT SYSTEM</h2>
-
         <p><strong>Customer:</strong> ${customerName}</p>
 
         ${productDetails}
 
         <h3>ORDER SUMMARY</h3>
-
         <p><strong>Subtotal:</strong> ₱${subtotal.toFixed(2)}</p>
         <p><strong>Discount Rate:</strong> ${discountRate}%</p>
         <p><strong>Discount Amount:</strong> ₱${discount.toFixed(2)}</p>
